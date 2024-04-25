@@ -1,0 +1,11 @@
+# Changes here will be overwritten by Copier
+_commit: fd2dc7d
+_src_path: https://github.com/lenskit/lk-project-template.git
+owner: Drexel University and contributors
+package_name: manylog
+project_descr: Collect log messages and progress updates from multiple processes.
+project_name: manylog
+project_title: ManyLog
+require_lint: true
+start_year: 2024
+typecheck: true

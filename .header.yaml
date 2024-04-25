@@ -1,0 +1,10 @@
+root: true
+start_year: 2024
+owner: Drexel University and contributors
+substring: This file is part of
+template: |-
+  {comment_start} This file is part of ManyLog.
+  {comment_middle} Copyright (C) {dates} {owner}
+  {comment_middle} Licensed under the MIT license, see LICENSE.md for details.
+  {comment_middle} SPDX-License-Identifier: MIT
+  {comment_end}
