@@ -1,3 +1,5 @@
+PIP := "uv pip"
+
 # list the tasks in this project (default)
 list-tasks:
     just --list
@@ -13,15 +15,15 @@ build:
 # install the package
 [confirm("this installs package from a wheel, continue [y/N]?")]
 install:
-    pip install .
+    {{PIP}} install .
 
 # install the package (editable)
 install-editable:
-    pip install -e .
+    {{PIP}} install -e .
 
 # set up for development in non-conda environments
 install-dev:
-    pip install -e '.[dev,test,doc]'
+    {{PIP}} install -e '.[dev,test,doc]'
 
 # run tests with default configuration
 test:
@@ -29,7 +31,7 @@ test:
 
 # run tests matching a keyword query
 test-matching query:
-    python -m pytest -k 
+    python -m pytest -k
 
 # build documentation
 docs:
