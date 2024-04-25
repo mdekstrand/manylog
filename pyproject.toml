@@ -38,6 +38,7 @@ dev = [
   "ipython",
   "pyproject2conda ",
   "sphinx-autobuild",
+  "msgpack-types",     # p2c: -p
 ]
 test = [
   "pytest >=7",
