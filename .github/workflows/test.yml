@@ -41,7 +41,7 @@ jobs:
         uv pip install --system -e '.[test]'
 
     - name: Run tests
-      run: python -m pytest --cov=binpickle --cov-report=xml tests
+      run: python -m pytest --cov=manylog --cov-report=xml tests
 
     - name: Save test results
       uses: lenskit/lkbuild/actions/save-test-results@main
