@@ -4,10 +4,10 @@ import pickle
 from dataclasses import dataclass, fields
 from enum import Enum
 from logging import LogRecord
-from typing import Any, ClassVar, Optional, Self, TypeVar
 from uuid import UUID
 
 from msgpack import packb, unpackb  # type: ignore
+from typing_extensions import Any, ClassVar, Optional, Self, TypeVar
 
 MC = TypeVar("MC", bound="type[BaseMsg]")
 MSG_TYPES = ["LogMsg"]
