@@ -9,7 +9,7 @@ import os
 import warnings
 from tempfile import TemporaryDirectory
 from threading import Thread
-from typing import Optional
+from typing import Any, Optional
 from uuid import UUID
 
 import zmq
@@ -24,7 +24,21 @@ _log = logging.getLogger(__name__)
 
 
 class LogListener:
+    """
+    Class that listens for logging messages and reinjects them in the parent.
+
+    The listener is not listening for messages until :meth:`start` is called. It
+    must be properly shut down with :meth:`close`.  The log listener can be used
+    as a context manager, in which case `start` and `close` will be
+    automatically called.  If the process terminates without calling `close`,
+    log messages may be lost.
+
+    Args:
+        ctx: A ZeroMQ context to use.
+    """
+
     address: str | None = None
+    "The address where the socket is listening for log messages."
     context: x.Context
     thread: ListenThread | None = None
     _tmpdir: TemporaryDirectory[str]
@@ -36,6 +50,9 @@ class LogListener:
             self.context = ctx
 
     def start(self):
+        """
+        Start the log listener.
+        """
         rt_dir = os.environ.get("XDG_RUNTIME_DIR", None)
         self._tmpdir = TemporaryDirectory(prefix="manylog-", dir=rt_dir)
         try:
@@ -49,12 +66,22 @@ class LogListener:
             raise e
 
     def close(self):
+        """
+        Shut down the log listener.
+        """
         if not self.thread:
             warnings.warn("listener thread not running")
             return
         self.thread.shutdown()
         self.thread = None
         self._tmpdir.cleanup()
+
+    def __begin__(self):
+        self.start()
+        return self
+
+    def __end__(self, *args: Any):
+        self.close()
 
 
 class ListenThread(Thread):
@@ -63,7 +90,7 @@ class ListenThread(Thread):
     active_pbs: dict[UUID, Progress]
 
     def __init__(self, socket: x.Socket):
-        super().__init__(name="manylog-listener")
+        super().__init__(name="manylog-listener", daemon=True)
         self.socket = socket
         self.active_pbs = {}
 
