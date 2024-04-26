@@ -31,6 +31,7 @@ dependencies = [
 dev = [
   "setuptools>=64",
   "setuptools_scm>=8",
+  "wheel",
   "build ==1.*",       # p2c: -s python-build==1
   "ruff >= 0.2",
   "pyright",
