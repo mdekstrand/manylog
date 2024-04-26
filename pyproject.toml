@@ -58,7 +58,7 @@ GitHub = "https://github.com/lenskit/manylog"
 
 # configure build tools
 [tool.setuptools.packages.find]
-include = ["manylog"]
+include = ["manylog*"]
 
 [tool.setuptools_scm]
 version_scheme = "release-branch-semver"
