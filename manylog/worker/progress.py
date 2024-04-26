@@ -29,7 +29,7 @@ class ZMQProgressBackend(ProgressBackend):
         id = uuid4()
         sdict = dataclasses.asdict(spec)
         sdict["logger"] = spec.logger.name
-        msg = m.ProgressBegin(self.pid, time.time(), id.bytes, sdict)
+        msg = m.ProgressBegin(self.pid, time.time(), id, sdict)
         self.socket.send(msg.encode())
         return ZMQProgress(self.socket, self.pid, id)
 
@@ -45,17 +45,17 @@ class ZMQProgress(Progress):
         self.uuid = id
 
     def set_label(self, label: Optional[str]) -> None:
-        msg = m.ProgressSetParam(self.pid, time.time(), self.uuid.bytes, "label", label)
+        msg = m.ProgressSetParam(self.pid, time.time(), self.uuid, "label", label)
         self.socket.send(msg.encode())
 
     def set_total(self, total: int) -> None:
-        msg = m.ProgressSetParam(self.pid, time.time(), self.uuid.bytes, "total", total)
+        msg = m.ProgressSetParam(self.pid, time.time(), self.uuid, "total", total)
         self.socket.send(msg.encode())
 
     def set_metric(
         self, label: str, value: int | str | float | None, fmt: str | None = None
     ) -> None:
-        msg = m.ProgressSetMetric(self.pid, time.time(), self.uuid.bytes, label, value, fmt)
+        msg = m.ProgressSetMetric(self.pid, time.time(), self.uuid, label, value, fmt)
         self.socket.send(msg.encode())
 
     def update(
@@ -65,9 +65,9 @@ class ZMQProgress(Progress):
         src_state: Optional[str] = None,
         metric: int | str | float | None = None,
     ) -> None:
-        msg = m.ProgressUpdate(self.pid, time.time(), self.uuid.bytes, n, state, src_state, metric)
+        msg = m.ProgressUpdate(self.pid, time.time(), self.uuid, n, state, src_state, metric)
         self.socket.send(msg.encode())
 
     def finish(self) -> None:
-        msg = m.ProgressEnd(self.pid, time.time(), self.uuid.bytes)
+        msg = m.ProgressEnd(self.pid, time.time(), self.uuid)
         self.socket.send(msg.encode())

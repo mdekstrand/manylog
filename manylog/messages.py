@@ -4,7 +4,8 @@ import pickle
 from dataclasses import dataclass, fields
 from enum import Enum
 from logging import LogRecord
-from typing import Any, ClassVar, Optional, TypeVar
+from typing import Any, ClassVar, Optional, Self, TypeVar
+from uuid import UUID
 
 from msgpack import packb, unpackb  # type: ignore
 
@@ -34,8 +35,28 @@ class BaseMsg:
     timestamp: float
 
     def encode(self) -> bytes:
-        attrs = {f.name: getattr(self, f.name) for f in fields(self)}
-        return packb((self.type.value, attrs))
+        return packb((self.type.value, self.to_dict()))
+
+    def to_dict(self) -> dict[str, Any]:
+        "Convert the message to a MsgPack-encodable dictionary."
+        data: dict[str, Any] = {}
+        for f in fields(self):
+            val = getattr(self, f.name)
+            if isinstance(val, UUID):
+                data[f.name] = val.bytes
+            else:
+                data[f.name] = val
+
+        return data
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> Self:
+        "Reconstruct the message from a MsgPack-encoded dictionary."
+        for f in fields(cls):
+            if f.type == "UUID":
+                data[f.name] = UUID(bytes=data[f.name])
+
+        return cls(**data)
 
 
 @_message_class
@@ -75,7 +96,7 @@ class LogMsg(BaseMsg):
 class ProgressBegin(BaseMsg):
     type = MsgType.PROGRESS_BEGIN
 
-    uuid: bytes
+    uuid: UUID
     spec: dict[str, Any]
 
 
@@ -84,7 +105,7 @@ class ProgressBegin(BaseMsg):
 class ProgressEnd(BaseMsg):
     type = MsgType.PROGRESS_END
 
-    uuid: bytes
+    uuid: UUID
 
 
 @_message_class
@@ -92,7 +113,7 @@ class ProgressEnd(BaseMsg):
 class ProgressSetParam(BaseMsg):
     type = MsgType.PROGRESS_SET_PARAM
 
-    uuid: bytes
+    uuid: UUID
     name: str
     value: int | str | None
 
@@ -106,7 +127,7 @@ class ProgressSetMetric(BaseMsg):
 
     type = MsgType.PROGRESS_SET_METRIC
 
-    uuid: bytes
+    uuid: UUID
     label: str
     metric: int | str | float | None
     format: str | None
@@ -121,7 +142,7 @@ class ProgressUpdate(BaseMsg):
 
     type = MsgType.PROGRESS_UPDATE
 
-    uuid: bytes
+    uuid: UUID
     incr: int
     state: Optional[str]
     src_state: Optional[str]
@@ -138,4 +159,4 @@ def decode_message(data: bytes) -> BaseMsg:
     type = MsgType(type)
 
     cls = MSG_IMPLS[type]
-    return cls(**attrs)
+    return cls.from_dict(attrs)
