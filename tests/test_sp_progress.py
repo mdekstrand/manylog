@@ -3,20 +3,11 @@ import multiprocessing as mp
 import time
 
 from progress_api import make_progress
+from progress_api.backends.mock import MockProgressBackend
 
 import pytest
 
 from manylog import LogListener, init_worker_logging
-
-
-@pytest.fixture
-def listener():
-    listener = LogListener()
-    listener.start()
-    try:
-        yield listener
-    finally:
-        listener.close()
 
 
 def _worker(cstr: str):
@@ -34,7 +25,9 @@ def _worker(cstr: str):
     print("worker finished")
 
 
-def test_single_progress(listener: LogListener, caplog: pytest.LogCaptureFixture):
+def test_single_progress(
+    listener: LogListener, caplog: pytest.LogCaptureFixture, progress_mock: MockProgressBackend
+):
     proc = mp.Process(target=_worker, args=[listener.address])
     proc.start()
     proc.join()
@@ -42,3 +35,7 @@ def test_single_progress(listener: LogListener, caplog: pytest.LogCaptureFixture
 
     assert any([r.message == "starting job" for r in caplog.records])
     assert any([r.message == "finished job" for r in caplog.records])
+    for rec in progress_mock.record:
+        print("-", rec)
+    assert "start tasks 50" in progress_mock.record
+    assert "end tasks 50" in progress_mock.record
