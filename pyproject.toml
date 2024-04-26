@@ -21,7 +21,7 @@ readme = "README.md"
 license = { file = "LICENSE.md" }
 dynamic = ["version"]
 dependencies = [
-  "progress-api>=0.1.0a4",
+  "progress-api>=0.1.0a5",
   "pyzmq",
   "msgpack==1.*",          # p2c: -s msgpack-python==1.*
 ]
