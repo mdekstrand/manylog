@@ -9,8 +9,12 @@ import warnings
 from tempfile import TemporaryDirectory
 from threading import Thread
 from typing import Optional
+from uuid import UUID
 
 import zmq
+from progress_api.api import Progress
+from progress_api.backends import ProgressBarSpec
+from progress_api.config import get_backend
 
 import manylog.connection as x
 import manylog.messages as m
@@ -54,10 +58,12 @@ class LogListener:
 class ListenThread(Thread):
     socket: x.Socket
     _shutdown_wanted: bool = False
+    active_pbs: dict[UUID, Progress]
 
     def __init__(self, socket: x.Socket):
         super().__init__(name="manylog-listener")
         self.socket = socket
+        self.active_pbs = {}
 
     def run(self):
         while True:
@@ -87,6 +93,22 @@ class ListenThread(Thread):
         match msg:
             case m.LogMsg():
                 self._dispatch_log(msg)
+            case m.ProgressBegin(uuid=uuid, spec=spec):
+                spec["logger"] = logging.getLogger(spec["logger"])
+                spec = ProgressBarSpec(**spec)
+                self.active_pbs[uuid] = get_backend().create_bar(spec)
+            case m.ProgressEnd(uuid=uuid):
+                pb = self.active_pbs[uuid]
+                pb.finish()
+                del self.active_pbs[uuid]
+            case m.ProgressSetParam(uuid=uuid, name="label", value=lbl):
+                self.active_pbs[uuid].set_label(lbl)  # type: ignore
+            case m.ProgressSetParam(uuid=uuid, name="total", value=tot):
+                self.active_pbs[uuid].set_total(tot)  # type: ignore
+            case m.ProgressSetMetric(uuid=uuid):
+                self.active_pbs[uuid].set_metric(msg.label, msg.metric, msg.format)
+            case m.ProgressUpdate(uuid=uuid):
+                self.active_pbs[uuid].update(msg.incr, msg.state, msg.src_state, msg.metric)
             case _:
                 raise TypeError(f"unsupported message type {type(msg)}")
 

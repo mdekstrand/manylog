@@ -16,7 +16,7 @@ def _worker(cstr: str):
     print("worker initialized")
     log = logging.getLogger()
     log.info("starting job")
-    prog = make_progress(log, "tasks", 50)
+    prog = make_progress(log, "tasks", 10)
     for _i in range(10):
         time.sleep(0.01)
         prog.update()
@@ -37,5 +37,5 @@ def test_single_progress(
     assert any([r.message == "finished job" for r in caplog.records])
     for rec in progress_mock.record:
         print("-", rec)
-    assert "start tasks 50" in progress_mock.record
-    assert "end tasks 50" in progress_mock.record
+    assert "start tasks 10" in progress_mock.record
+    assert "finish tasks" in progress_mock.record
