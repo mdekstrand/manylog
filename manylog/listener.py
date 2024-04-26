@@ -12,6 +12,7 @@ from typing import Optional
 
 import zmq
 
+import manylog.connection as x
 import manylog.messages as m
 
 _log = logging.getLogger(__name__)
@@ -19,11 +20,11 @@ _log = logging.getLogger(__name__)
 
 class LogListener:
     address: str | None = None
-    context: zmq.Context[zmq.Socket[bytes]]
+    context: x.Context
     thread: ListenThread | None = None
     _tmpdir: TemporaryDirectory[str]
 
-    def __init__(self, ctx: Optional[zmq.Context[zmq.Socket[bytes]]] = None):
+    def __init__(self, ctx: Optional[x.Context] = None):
         if ctx is None:
             self.context = zmq.Context.instance()
         else:
@@ -51,10 +52,10 @@ class LogListener:
 
 
 class ListenThread(Thread):
-    socket: zmq.Socket[bytes]
+    socket: x.Socket
     _shutdown_wanted: bool = False
 
-    def __init__(self, socket: zmq.Socket[bytes]):
+    def __init__(self, socket: x.Socket):
         super().__init__(name="manylog-listener")
         self.socket = socket
 

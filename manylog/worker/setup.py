@@ -3,12 +3,15 @@ from __future__ import annotations
 import logging
 
 import zmq
+from progress_api import set_backend
 
+from ..connection import Context
 from .logging import ZMQLogHandler
+from .progress import ZMQProgressBackend
 
 
 def init_worker_logging(address: str, level: int = logging.INFO):
-    ctx: zmq.Context[zmq.Socket[bytes]] = zmq.Context.instance()
+    ctx: Context = zmq.Context.instance()
     sock = ctx.socket(zmq.PUSH)
     sock.connect(address)
 
@@ -17,3 +20,5 @@ def init_worker_logging(address: str, level: int = logging.INFO):
     root = logging.getLogger()
     root.setLevel(level)
     root.addHandler(h)
+
+    set_backend(ZMQProgressBackend(sock))

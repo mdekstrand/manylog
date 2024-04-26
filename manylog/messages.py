@@ -4,15 +4,27 @@ import pickle
 from dataclasses import dataclass, fields
 from enum import Enum
 from logging import LogRecord
-from typing import ClassVar, Optional
+from typing import Any, ClassVar, Optional, TypeVar
 
 from msgpack import packb, unpackb  # type: ignore
 
+MC = TypeVar("MC", bound="type[BaseMsg]")
 MSG_TYPES = ["LogMsg"]
+MSG_IMPLS: dict[MsgType, type[BaseMsg]] = {}
+
+
+def _message_class(cls: MC) -> MC:
+    MSG_IMPLS[cls.type] = cls
+    return cls
 
 
 class MsgType(Enum):
     LOG = 1
+    PROGRESS_BEGIN = 10
+    PROGRESS_END = 11
+    PROGRESS_SET_PARAM = 12
+    PROGRESS_SET_METRIC = 13
+    PROGRESS_UPDATE = 15
 
 
 @dataclass
@@ -26,6 +38,7 @@ class BaseMsg:
         return packb((self.type.value, attrs))
 
 
+@_message_class
 @dataclass
 class LogMsg(BaseMsg):
     type = MsgType.LOG
@@ -57,7 +70,62 @@ class LogMsg(BaseMsg):
         return obj
 
 
-MSG_IMPLS = {MsgType.LOG: LogMsg}
+@_message_class
+@dataclass
+class ProgressBegin(BaseMsg):
+    type = MsgType.PROGRESS_BEGIN
+
+    uuid: bytes
+    spec: dict[str, Any]
+
+
+@_message_class
+@dataclass
+class ProgressEnd(BaseMsg):
+    type = MsgType.PROGRESS_END
+
+    uuid: bytes
+
+
+@_message_class
+@dataclass
+class ProgressSetParam(BaseMsg):
+    type = MsgType.PROGRESS_SET_PARAM
+
+    uuid: bytes
+    name: str
+    value: int | str | None
+
+
+@_message_class
+@dataclass
+class ProgressSetMetric(BaseMsg):
+    """
+    Progress bar metric messages.
+    """
+
+    type = MsgType.PROGRESS_SET_METRIC
+
+    uuid: bytes
+    label: str
+    metric: int | str | float | None
+    format: str | None
+
+
+@_message_class
+@dataclass
+class ProgressUpdate(BaseMsg):
+    """
+    Progress bar update messages.
+    """
+
+    type = MsgType.PROGRESS_UPDATE
+
+    uuid: bytes
+    incr: int
+    state: Optional[str]
+    src_state: Optional[str]
+    metric: int | str | float | None
 
 
 def decode_message(data: bytes) -> BaseMsg:

@@ -2,15 +2,14 @@ from __future__ import annotations
 
 from logging import Handler, LogRecord
 
-import zmq
-
+from manylog.connection import Socket
 from manylog.messages import LogMsg
 
 
 class ZMQLogHandler(Handler):
-    socket: zmq.Socket[bytes]
+    socket: Socket
 
-    def __init__(self, socket: zmq.Socket[bytes]):
+    def __init__(self, socket: Socket):
         self.socket = socket
 
     def handle(self, record: LogRecord) -> LogRecord | bool:  # type: ignore

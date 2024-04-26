@@ -1,5 +1,8 @@
 import logging
 import multiprocessing as mp
+import time
+
+from progress_api import make_progress
 
 import pytest
 
@@ -21,14 +24,21 @@ def _worker(cstr: str):
     init_worker_logging(cstr)
     print("worker initialized")
     log = logging.getLogger()
-    log.info("test message from child thread")
+    log.info("starting job")
+    prog = make_progress(log, "tasks", 50)
+    for _i in range(10):
+        time.sleep(0.01)
+        prog.update()
+    prog.finish()
+    log.info("finished job")
     print("worker finished")
 
 
-def test_mp_one(listener: LogListener, caplog: pytest.LogCaptureFixture):
+def test_single_progress(listener: LogListener, caplog: pytest.LogCaptureFixture):
     proc = mp.Process(target=_worker, args=[listener.address])
     proc.start()
     proc.join()
     assert proc.exitcode == 0
 
-    assert any([r.message == "test message from child thread" for r in caplog.records])
+    assert any([r.message == "starting job" for r in caplog.records])
+    assert any([r.message == "finished job" for r in caplog.records])
