@@ -57,8 +57,8 @@ Homepage = "https://manylog.lenksit.org"
 GitHub = "https://github.com/lenskit/manylog"
 
 # configure build tools
-[tool.setuptools]
-packages = ["manylog"]
+[tool.setuptools.packages.find]
+include = ["manylog"]"
 
 [tool.setuptools_scm]
 version_scheme = "release-branch-semver"
