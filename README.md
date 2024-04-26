@@ -7,7 +7,7 @@ when using the `fork` multiprocessing context.  It supports log messages
 through the Python standard library's logging module, and progress reported
 with [progress-api][].
 
-[progress-api]: https://pypi.org/project/progress-api
+[progress-api]: https://progress-api.readthedocs.io/en/latest/
 
 This package fixes that, through two parts:
 
@@ -25,3 +25,18 @@ ZeroMQ to route messages between parent and child processes.
 
 Currently, only single-machine multiprocessing is supported, but ZeroMQ will
 make it easy to add cluster log and progress aggregation in the future.
+
+## Example
+
+In the parent:
+
+```python
+import multiprocessing.Pool
+from manylog import LogListener, init_worker_logging
+
+with LogListener() as ll, mp.Pool(4, init_worker_logging, (ll.address,), None, mp.get_context('spawn')) as pool:
+    # use `pool` to schedule parallel work
+```
+
+Log messages from worker processes will be routed through whatever logging and
+progress configuration you have set up.
