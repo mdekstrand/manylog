@@ -5,6 +5,7 @@ Listener to obtain and re-inject log messages and progress updates.
 from __future__ import annotations
 
 import logging
+import os
 import warnings
 from tempfile import TemporaryDirectory
 from threading import Thread
@@ -35,7 +36,8 @@ class LogListener:
             self.context = ctx
 
     def start(self):
-        self._tmpdir = TemporaryDirectory(prefix="manylog-")
+        rt_dir = os.environ.get("XDG_RUNTIME_DIR", None)
+        self._tmpdir = TemporaryDirectory(prefix="manylog-", dir=rt_dir)
         try:
             socket = self.context.socket(zmq.PULL, zmq.Socket)
             self.address = f"ipc://{self._tmpdir.name}/logging.ipc"
