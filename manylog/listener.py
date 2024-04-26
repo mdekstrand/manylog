@@ -14,7 +14,7 @@ from uuid import UUID
 
 import zmq
 from progress_api.api import Progress
-from progress_api.backends import ProgressBarSpec
+from progress_api.backends import ProgressBarSpec, ProgressState
 from progress_api.config import get_backend
 
 import manylog.connection as x
@@ -125,6 +125,7 @@ class ListenThread(Thread):
                 self._dispatch_log(msg)
             case m.ProgressBegin(uuid=uuid, spec=spec):
                 spec["logger"] = logging.getLogger(spec["logger"])
+                spec["states"] = [ProgressState(n, f) for (n, f) in spec["states"]]
                 spec = ProgressBarSpec(**spec)
                 self.active_pbs[uuid] = get_backend().create_bar(spec)
             case m.ProgressEnd(uuid=uuid):
