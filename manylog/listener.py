@@ -76,12 +76,13 @@ class LogListener:
         self.thread = None
         self._tmpdir.cleanup()
 
-    def __begin__(self):
+    def __enter__(self):
         self.start()
         return self
 
-    def __end__(self, *args: Any):
+    def __exit__(self, *args: Any):
         self.close()
+        return False
 
 
 class ListenThread(Thread):
