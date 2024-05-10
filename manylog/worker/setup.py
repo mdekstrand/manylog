@@ -25,7 +25,7 @@ def init_worker_logging(address: str, level: int = logging.INFO):
             The maximum logging level to forward.
     """
     global _context, _socket
-    _context: Context = zmq.Context.instance()
+    _context = zmq.Context.instance()
     _socket = _context.socket(zmq.PUSH)
     _socket.connect(address)
 
