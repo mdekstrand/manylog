@@ -5,9 +5,12 @@ import logging
 import zmq
 from progress_api import set_backend
 
-from ..connection import Context
+from ..connection import Context, Socket
 from .logging import ZMQLogHandler
 from .progress import ZMQProgressBackend
+
+_context: Context
+_socket: Socket
 
 
 def init_worker_logging(address: str, level: int = logging.INFO):
@@ -21,14 +24,23 @@ def init_worker_logging(address: str, level: int = logging.INFO):
         level:
             The maximum logging level to forward.
     """
-    ctx: Context = zmq.Context.instance()
-    sock = ctx.socket(zmq.PUSH)
-    sock.connect(address)
+    global _context, _socket
+    _context: Context = zmq.Context.instance()
+    _socket = _context.socket(zmq.PUSH)
+    _socket.connect(address)
 
-    h = ZMQLogHandler(sock)
+    h = ZMQLogHandler(_socket)
     h.setLevel(level)
     root = logging.getLogger()
     root.setLevel(level)
     root.addHandler(h)
 
-    set_backend(ZMQProgressBackend(sock))
+    set_backend(ZMQProgressBackend(_socket))
+
+
+def get_socket() -> Socket:
+    """
+    Get the active socket in the worker process.  Fails if the worker
+    has not been initialized.
+    """
+    return _socket

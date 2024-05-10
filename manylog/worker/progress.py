@@ -39,10 +39,11 @@ class ZMQProgress(Progress):
     pid: int
     uuid: UUID
 
-    def __init__(self, socket: Socket, pid: int, id: UUID):
+    def __init__(self, socket: Socket, pid: int, id: UUID, *, owned: bool = True):
         self.socket = socket
         self.pid = pid
         self.uuid = id
+        self.owned = owned
 
     def set_label(self, label: Optional[str]) -> None:
         msg = m.ProgressSetParam(self.pid, time.time(), self.uuid, "label", label)
@@ -69,5 +70,17 @@ class ZMQProgress(Progress):
         self.socket.send(msg.encode())
 
     def finish(self) -> None:
-        msg = m.ProgressEnd(self.pid, time.time(), self.uuid)
-        self.socket.send(msg.encode())
+        if self.owned:
+            msg = m.ProgressEnd(self.pid, time.time(), self.uuid)
+            self.socket.send(msg.encode())
+
+
+def connect_progress(uuid: UUID) -> Progress:
+    """
+    Connect to an already-established progress bar in the parent process.
+    """
+    # import here to avoid circular import
+    from manylog.worker.setup import get_socket
+
+    sock = get_socket()
+    return ZMQProgress(sock, os.getpid(), uuid, owned=False)

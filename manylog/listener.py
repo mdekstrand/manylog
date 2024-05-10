@@ -10,7 +10,7 @@ import warnings
 from tempfile import TemporaryDirectory
 from threading import Thread
 from typing import Any, Optional
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import zmq
 from progress_api.api import Progress
@@ -21,6 +21,7 @@ import manylog.connection as x
 import manylog.messages as m
 
 _log = logging.getLogger(__name__)
+_global_listener: LogListener | None = None
 
 
 class LogListener:
@@ -75,6 +76,16 @@ class LogListener:
         self.thread.shutdown()
         self.thread = None
         self._tmpdir.cleanup()
+
+    def share_progress(self, progress: Progress) -> UUID:
+        """
+        Register a progress bar for sharing with child processes.
+        """
+        if self.thread is None:
+            raise RuntimeError("listener not started")
+        uuid = uuid4()
+        self.thread.active_pbs[uuid] = progress
+        return uuid
 
     def __enter__(self):
         self.start()
