@@ -24,6 +24,27 @@ _log = logging.getLogger(__name__)
 _global_listener: LogListener | None = None
 
 
+def global_listener(listener: LogListener | None = None) -> LogListener:
+    """
+    Get the global log listener, setting it up if it does not exist.
+
+    Can also be to _set_ a global listener, if none has been initialized yet.
+    """
+    global _global_listener
+    if listener is not None:
+        if _global_listener is not None:
+            raise RuntimeError("global listener already initialized")
+        _global_listener = listener
+        return listener
+
+    if _global_listener is None:
+        _global_listener = LogListener()
+        _global_listener.start()
+
+    assert _global_listener is not None
+    return _global_listener
+
+
 class LogListener:
     """
     Class that listens for logging messages and reinjects them in the parent.
