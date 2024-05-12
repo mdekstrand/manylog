@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import logging
 import os
+import traceback
 import warnings
 from tempfile import TemporaryDirectory
 from threading import Thread
@@ -142,6 +143,7 @@ class ListenThread(Thread):
                     self._dispatch_message(msg)
                 except Exception as e:
                     _log.error("error dispatching log message: %s", e)
+                    _log.info("full dispatch error:\n%s", "\n".join(traceback.format_exception(e)))
                     continue
             elif self._shutdown_wanted:
                 self.socket.close()
