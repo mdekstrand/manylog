@@ -34,6 +34,7 @@ def initialize() -> None:
     if _init_called:
         return
 
+    _init_called = True
     if MANYLOG_ENV_VAR in os.environ:
         init_worker_logging(os.environ[MANYLOG_ENV_VAR])
     else:
