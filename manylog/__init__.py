@@ -15,9 +15,16 @@ except PackageNotFoundError:
     pass
 
 from .listener import LogListener, global_listener
-from .worker import init_worker_logging
+from .worker import connect_progress, init_worker_logging
 
-__all__ = ["LogListener", "init_worker_logging", "initialize", "global_listener", "share_progress"]
+__all__ = [
+    "LogListener",
+    "init_worker_logging",
+    "initialize",
+    "global_listener",
+    "share_progress",
+    "connect_progress",
+]
 MANYLOG_ENV_VAR = "MANYLOG_ADDRESS"
 _init_called: bool = False
 
