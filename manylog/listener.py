@@ -80,8 +80,12 @@ class LogListener:
         self._tmpdir = TemporaryDirectory(prefix="manylog-", dir=rt_dir)
         try:
             socket = self.context.socket(zmq.PULL, zmq.Socket)
-            self.address = f"ipc://{self._tmpdir.name}/logging.ipc"
-            socket.bind(self.address)
+            if zmq.has("ipc"):
+                self.address = f"ipc://{self._tmpdir.name}/logging.ipc"
+                socket.bind(self.address)
+            else:
+                socket.bind("tcp://127.0.0.1:0")
+                self.address = socket.last_endpoint
             self.thread = ListenThread(socket)
             self.thread.start()
         except Exception as e:
