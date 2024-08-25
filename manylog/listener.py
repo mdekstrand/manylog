@@ -85,7 +85,11 @@ class LogListener:
                 socket.bind(self.address)
             else:
                 socket.bind("tcp://127.0.0.1:0")
-                self.address = socket.last_endpoint.decode("ascii")
+                addr = socket.last_endpoint
+                if isinstance(addr, bytes):
+                    self.address = addr.decode("ascii")
+                else:
+                    self.address = str(addr)
             self.thread = ListenThread(socket)
             self.thread.start()
         except Exception as e:
